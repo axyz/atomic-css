@@ -123,38 +123,47 @@ impl Organism {
     fn get_molecule_exports(&self, molecule: MoleculeName) -> HashMap<AtomName, Vec<String>> {
         let mut exports = HashMap::new();
 
-        if let Some(molecule) = self.molecules.get(&molecule) {
-            for atom_name in molecule.atoms.keys() {
-                let mut atom_classes = HashSet::new();
-                if let Some(selector) = molecule.get_atom_selector(atom_name) {
-                    if molecule.has_hashable_content(atom_name) {
-                        atom_classes.insert(&selector[1..]);
-                    }
+        let Some(molecule) = self.molecules.get(&molecule) else {
+            return exports;
+        };
+
+        for atom_name in molecule.atoms.keys() {
+            let mut atom_classes = HashSet::new();
+
+            if let Some(selector) = molecule.get_atom_selector(atom_name) {
+                if molecule.has_hashable_content(atom_name) {
+                    atom_classes.insert(&selector[1..]);
                 }
-                if let Some(electrons) = molecule.get_atom_electrons(atom_name) {
-                    for electron in electrons {
-                        // TODO: electron hasing
-                        atom_classes.insert(electron);
-                    }
-                }
-                if let Some(imports) = molecule.get_atom_imports(atom_name) {
-                    for (molecule_name, atom_name) in imports {
-                        // for this to exist this function mus tbe called respecting the
-                        // topological order of the dependencies
-                        if let Some(molecule_exports) = self.exports.get(molecule_name) {
-                            if let Some(classes) = molecule_exports.get(atom_name) {
-                                for class in classes {
-                                    atom_classes.insert(class);
-                                }
-                            }
-                        }
-                    }
-                }
-                exports.insert(
-                    atom_name.to_string(),
-                    atom_classes.iter().map(|class| class.to_string()).collect(),
-                );
             }
+
+            if let Some(electrons) = molecule.get_atom_electrons(atom_name) {
+                for electron in electrons {
+                    // TODO: electron hasing
+                    atom_classes.insert(electron);
+                }
+            }
+
+            let Some(imports) = molecule.get_atom_imports(atom_name) else {
+                continue;
+            };
+
+            for (molecule_name, atom_name) in imports {
+                // for this to exist this function mus tbe called respecting the
+                // topological order of the dependencies
+                let Some(molecule_exports) = self.exports.get(molecule_name) else {
+                    continue;
+                };
+                if let Some(classes) = molecule_exports.get(atom_name) {
+                    for class in classes {
+                        atom_classes.insert(class);
+                    }
+                }
+            }
+
+            exports.insert(
+                atom_name.to_string(),
+                atom_classes.iter().map(|class| class.to_string()).collect(),
+            );
         }
 
         exports
@@ -202,7 +211,7 @@ mod tests {
             .with_electrons(electrons)
             .with_molecules(vec![flag, button]);
 
-        library.update_exports();
+        library.update_exports().expect("Failed to update exports");
 
         print!(">>> {:?}", &library);
 
