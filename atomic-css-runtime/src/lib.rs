@@ -188,17 +188,7 @@ impl Runtime {
         match &args {
             [Node::String(molecule), Node::String(imported_atom)] => {
                 atom.insert_import(molecule, imported_atom);
-                let exports = self.organism.get_exports();
-                if let Some(classes) = exports.get(molecule).and_then(|m| m.get(imported_atom)) {
-                    Ok(Value::Vec(
-                        classes
-                            .iter()
-                            .map(|c| Value::String(c.to_string()))
-                            .collect(),
-                    ))
-                } else {
-                    Err(("Import not found".to_owned(), args.to_vec()))
-                }
+                Ok(Value::Void)
             }
             _ => Err(("Invalid import".to_owned(), args.to_vec())),
         }
