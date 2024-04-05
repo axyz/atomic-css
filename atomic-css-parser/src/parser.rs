@@ -1,4 +1,5 @@
 use crate::lexer::{Lexer, Span, Token};
+use derive_more::Display;
 use logos::Logos;
 
 type Error = (String, Span);
@@ -22,8 +23,9 @@ pub fn pretty_print_error(error: &Error, src: &str) {
 
 type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug, Display)]
 pub enum Node {
+    #[display(fmt = "Function({}, {:?})", _0, _1)]
     Function(String, Vec<Node>),
     String(String),
     Identifier(String),

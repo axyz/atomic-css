@@ -1,9 +1,11 @@
 use crate::electron::*;
 use crate::molecule::*;
+use derive_more::Display;
 
 pub type AtomName = String;
 
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
+#[display(fmt = "#Atom({})", name)]
 pub struct Atom {
     pub name: AtomName,
     pub electrons: Vec<ElectronName>,

@@ -1,6 +1,8 @@
 pub type ElectronName = String;
+use derive_more::Display;
 
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
+#[display(fmt = "#Electron({})", name)]
 pub struct Electron {
     pub name: ElectronName,
     pub property: String,

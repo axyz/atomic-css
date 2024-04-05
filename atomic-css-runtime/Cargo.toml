@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 atomic-css-parser = { path = "../atomic-css-parser/" }
 atomic-css-organism = { path = "../atomic-css-organism/" }
+derive_more = "0.99.17"

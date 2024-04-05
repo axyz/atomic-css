@@ -1,3 +1,4 @@
+use derive_more::Display;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
@@ -24,7 +25,8 @@ fn get_variables(str: &str) -> Vec<String> {
     variables
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
+#[display(fmt = "#CSSRule({} {{ ... }})", selector)]
 pub struct CSSRule {
     pub selector: String,
     pub css: String,
@@ -39,7 +41,8 @@ impl CSSRule {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
+#[display(fmt = "#CSSAtRule(@{} {:?} {{ ... }})", name, params)]
 pub struct CSSAtRule {
     pub name: String,
     pub params: Option<String>,
@@ -116,7 +119,8 @@ impl HashedAtoms {
 
 pub type MoleculeName = String;
 
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
+#[display(fmt = "#Molecule({})", name)]
 pub struct Molecule {
     pub name: MoleculeName,
     dependencies: HashSet<MoleculeName>,

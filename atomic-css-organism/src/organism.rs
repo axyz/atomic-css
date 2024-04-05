@@ -179,6 +179,11 @@ impl Organism {
         }
         Ok(())
     }
+
+    pub fn get_exports(&mut self) -> &HashMap<MoleculeName, HashMap<AtomName, Vec<String>>> {
+        self.update_exports().expect("Failed to update exports");
+        &self.exports
+    }
 }
 
 #[cfg(test)]
