@@ -215,6 +215,11 @@ impl Molecule {
         self.atoms.get(atom_name).map(|atom| &atom.electrons)
     }
 
+    pub fn has_hashable_content(&self, atom_name: &str) -> bool {
+        self.hashed_atoms.hashable_contents.contains_key(atom_name)
+            && !self.hashed_atoms.hashable_contents[atom_name].is_empty()
+    }
+
     pub fn insert_css_at_rule(&mut self, css_at_rule: &CSSAtRule) {
         let mut at_rule = String::from("@");
         at_rule.push_str(&css_at_rule.name.clone());

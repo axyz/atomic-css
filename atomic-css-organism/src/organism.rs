@@ -127,7 +127,9 @@ impl Organism {
             for atom_name in molecule.atoms.keys() {
                 let mut atom_classes = HashSet::new();
                 if let Some(selector) = molecule.get_atom_selector(atom_name) {
-                    atom_classes.insert(&selector[1..]);
+                    if molecule.has_hashable_content(atom_name) {
+                        atom_classes.insert(&selector[1..]);
+                    }
                 }
                 if let Some(electrons) = molecule.get_atom_electrons(atom_name) {
                     for electron in electrons {
