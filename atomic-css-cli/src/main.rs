@@ -40,7 +40,7 @@ fn main() {
     let src = fs::read_to_string(filename).expect("Failed to read file");
 
     let mut runtime = Runtime::new();
-    runtime.run(&src);
+    runtime.run(&src).expect("Failed to run program");
 
     runtime
         .organism
