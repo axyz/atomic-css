@@ -14,13 +14,6 @@ struct Dependencies {
 }
 
 impl Dependencies {
-    fn new() -> Self {
-        Dependencies {
-            node_ids: HashMap::new(),
-            graph: DiGraph::new(),
-        }
-    }
-
     fn contains(&self, molecule: &MoleculeName) -> bool {
         self.node_ids.contains_key(molecule)
     }
@@ -36,13 +29,13 @@ impl Dependencies {
     }
 
     fn add_dependency(&mut self, from: MoleculeName, to: MoleculeName) {
-        let from_id = if let Some(id) = self.node_ids.get(&from) {
+        let to_id = if let Some(id) = self.node_ids.get(&from) {
             *id
         } else {
             self.add_molecule(from)
         };
 
-        let to_id = if let Some(id) = self.node_ids.get(&to) {
+        let from_id = if let Some(id) = self.node_ids.get(&to) {
             *id
         } else {
             self.add_molecule(to)
@@ -134,7 +127,7 @@ impl Organism {
             for atom_name in molecule.atoms.keys() {
                 let mut atom_classes = HashSet::new();
                 if let Some(selector) = molecule.get_atom_selector(atom_name) {
-                    atom_classes.insert(selector);
+                    atom_classes.insert(&selector[1..]);
                 }
                 if let Some(electrons) = molecule.get_atom_electrons(atom_name) {
                     for electron in electrons {
