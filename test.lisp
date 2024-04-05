@@ -1,4 +1,5 @@
 (electron `red` (color `#ff0000`))
+(electron `blue` (color `#0000ff`))
 (electron `bg_green` (background-color `#00ff00`))
 (molecule `flag`
   (atom `root` (electrons `red` `bg_green`))

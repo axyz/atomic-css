@@ -2,6 +2,7 @@ use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
 use crate::atom::*;
+use crate::electron::*;
 
 fn template_string(template: &str, values: &HashMap<String, String>) -> String {
     let re = Regex::new(r"\$\{([^}]+)\}").unwrap();
@@ -200,6 +201,18 @@ impl Molecule {
 
     pub fn get_css(&self) -> String {
         template_string(&self.css, &self.hashed_atoms.selectors)
+    }
+
+    pub fn get_atom_selector(&self, atom_name: &str) -> Option<&String> {
+        self.hashed_atoms.selectors.get(atom_name)
+    }
+
+    pub fn get_atom_imports(&self, atom_name: &str) -> Option<&Vec<(MoleculeName, AtomName)>> {
+        self.atoms.get(atom_name).map(|atom| &atom.imports)
+    }
+
+    pub fn get_atom_electrons(&self, atom_name: &str) -> Option<&Vec<ElectronName>> {
+        self.atoms.get(atom_name).map(|atom| &atom.electrons)
     }
 
     pub fn insert_css_at_rule(&mut self, css_at_rule: &CSSAtRule) {

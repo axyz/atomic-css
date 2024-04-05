@@ -42,5 +42,7 @@ fn main() {
     let mut runtime = Runtime::new();
     runtime.run(&src);
 
+    runtime.organism.update_exports();
+
     println!("{:?}", &runtime.organism);
 }
