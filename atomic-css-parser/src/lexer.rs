@@ -11,7 +11,7 @@ pub enum Token {
     #[token(")")]
     RParen,
 
-    #[regex("[@a-zA-Z][a-zA-z0-9-_]*", |lex| lex.slice().to_owned())]
+    #[regex("[&@a-zA-Z][a-zA-z0-9-_]*", |lex| lex.slice().to_owned())]
     Identifier(String),
 
     #[regex(r#"`([^`])*`"#, |lex| lex.slice()[1..lex.slice().len() - 1].to_owned())]

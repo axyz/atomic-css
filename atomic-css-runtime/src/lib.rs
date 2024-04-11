@@ -119,7 +119,7 @@ impl Runtime {
     ) -> Result<Value, Error> {
         match name {
             "atom" => Ok(self.handle_atom(molecule, args)?),
-            "rule" => Ok(self.handle_rule(molecule, args)?),
+            "&" => Ok(self.handle_rule(molecule, args)?),
             "@" => Ok(self.handle_at_rule(molecule, args)?),
             _ => Ok(Value::Void),
         }
@@ -277,7 +277,7 @@ impl Runtime {
                 let mut css_at_rule = CSSAtRule::new(name, Some(params));
                 for rule in rules {
                     match rule {
-                        Node::Function(function, args) if function == "rule" => {
+                        Node::Function(function, args) if function == "&" => {
                             let css_rule = if let Ok(Value::CSSRule(css_rule)) =
                                 self.handle_rule(&mut Molecule::new("<dummy>"), args)
                             {
