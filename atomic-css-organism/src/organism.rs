@@ -100,10 +100,7 @@ impl Organism {
     pub fn insert_electron(&mut self, electron: &Electron) {
         self.electrons
             .insert(electron.name.to_owned(), electron.to_owned());
-        self.css.push_str(&format!(
-            ".{} {{ {}: {} }}",
-            electron.name, electron.property, electron.value
-        ));
+        self.css.push_str(&electron.get_css());
     }
 
     pub fn insert_molecule(&mut self, molecule: &Molecule) {

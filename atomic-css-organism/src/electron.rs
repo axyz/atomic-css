@@ -17,4 +17,8 @@ impl Electron {
             value: value.to_string(),
         }
     }
+
+    pub fn get_css(&self) -> String {
+        format!(".{}{{{}:{}}}", self.name, self.property, self.value)
+    }
 }
