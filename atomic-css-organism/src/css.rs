@@ -9,7 +9,7 @@ pub struct CSSDeclaration {
 
 impl CSSDeclaration {
     pub fn new(property: &str, value: &str) -> Self {
-        CSSDeclaration {
+        Self {
             property: property.to_string(),
             value: value.to_string(),
         }
@@ -37,7 +37,7 @@ pub struct CSSRule {
 
 impl CSSRule {
     pub fn new(selector: &str) -> Self {
-        CSSRule {
+        Self {
             selector: selector.to_string(),
             ..Default::default()
         }
@@ -87,7 +87,7 @@ pub struct CSSAtRule {
 
 impl CSSAtRule {
     pub fn new(name: &str, params: Option<&str>) -> Self {
-        let mut at_rule = CSSAtRule {
+        let mut at_rule = Self {
             ..Default::default()
         };
         at_rule.name = name.to_string();

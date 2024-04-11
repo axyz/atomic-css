@@ -11,7 +11,7 @@ pub struct Electron {
 
 impl Electron {
     pub fn new(name: &str, property: &str, value: &str) -> Self {
-        Electron {
+        Self {
             name: name.to_string(),
             property: property.to_string(),
             value: value.to_string(),

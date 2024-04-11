@@ -68,7 +68,7 @@ pub struct Organism {
 
 impl Organism {
     pub fn new() -> Self {
-        Organism {
+        Self {
             ..Default::default()
         }
     }

@@ -14,7 +14,7 @@ pub struct Atom {
 
 impl Atom {
     pub fn new(name: &str) -> Self {
-        Atom {
+        Self {
             name: name.to_string(),
             ..Default::default()
         }

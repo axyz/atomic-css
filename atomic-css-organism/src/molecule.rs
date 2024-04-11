@@ -35,7 +35,7 @@ struct HashedAtoms {
 
 impl HashedAtoms {
     fn new(molecule_name: &str) -> Self {
-        HashedAtoms {
+        Self {
             molecule_name: molecule_name.to_string(),
             ..Default::default()
         }
@@ -79,12 +79,12 @@ pub struct Molecule {
     dependencies: HashSet<MoleculeName>,
     pub atoms: HashMap<AtomName, Atom>,
     hashed_atoms: HashedAtoms,
-    pub css: String,
+    css: String,
 }
 
 impl Molecule {
     pub fn new(name: &str) -> Self {
-        Molecule {
+        Self {
             name: name.to_string(),
             hashed_atoms: HashedAtoms::new(name),
             ..Default::default()
