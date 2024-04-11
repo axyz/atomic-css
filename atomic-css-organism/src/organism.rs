@@ -189,30 +189,34 @@ impl Organism {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::*;
+    use crate::css::*;
 
     #[test]
     fn it_works() {
         let electrons = vec![
-            electron!("red", "color", "#ff0000"),
-            electron!("bg_green", "background-color", "#00ff00"),
+            Electron::new("red", "color", "#ff0000"),
+            Electron::new("bg_green", "background-color", "#00ff00"),
         ];
 
-        let flag = molecule!("flag")
-            .with_atom(atom!("root").with_electrons(vec!["bg_green"]))
-            .with_atom(atom!("label").with_imports(vec![("button", "label")]))
-            .with_css_rule(rule!("${root}", "padding: 1rem"))
-            .with_css_at_rule(at_rule!("foo"))
-            .with_css_at_rule(at_rule!("bar", "baz"))
-            .with_css_at_rule(at_rule!(
-                "media",
-                "(min-width: 1024px)",
-                vec![rule!("${root}", "padding: 1.5rem")]
-            ));
+        let flag = Molecule::new("flag")
+            .with_atom(Atom::new("root").with_electrons(vec!["bg_green"]))
+            .with_atom(Atom::new("label").with_imports(vec![("button", "label")]))
+            .with_css_rule(
+                CSSRule::new("${root}").with_declaration(CSSDeclaration::new("padding", "1rem")),
+            )
+            .with_css_at_rule(CSSAtRule::new("foo", None))
+            .with_css_at_rule(CSSAtRule::new("bar", Some("baz")))
+            .with_css_at_rule(
+                CSSAtRule::new("media", Some("(min-width: 1024px)")).with_rule(
+                    CSSRule::new("${root}")
+                        .with_declaration(CSSDeclaration::new("padding", "1.5rem")),
+                ),
+            );
 
-        let button = molecule!("button").with_atom(atom!("label").with_electrons(vec!["red"]));
+        let button =
+            Molecule::new("button").with_atom(Atom::new("label").with_electrons(vec!["red"]));
 
-        let mut library = organism!()
+        let mut library = Organism::new()
             .with_electrons(electrons)
             .with_molecules(vec![flag, button]);
 

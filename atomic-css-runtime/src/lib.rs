@@ -1,4 +1,5 @@
 use atomic_css_organism::atom::*;
+use atomic_css_organism::css::*;
 use atomic_css_organism::electron::*;
 use atomic_css_organism::molecule::*;
 use atomic_css_organism::organism::*;
@@ -231,36 +232,72 @@ impl Runtime {
     }
 
     fn handle_rule(&mut self, molecule: &mut Molecule, args: &[Node]) -> Result<Value, Error> {
-        match &args {
-            [Node::String(selector), Node::String(css)] => {
-                let css_rule = CSSRule::new(selector, css);
-                molecule.insert_css_rule(&css_rule, None);
-                Ok(Value::CSSRule(css_rule.to_owned()))
+        let mut css_rule = if let Some(Node::String(selector)) = args.first() {
+            CSSRule::new(selector)
+        } else {
+            return Err(("Invalid rule".to_owned(), args.to_vec()));
+        };
+
+        for node in &args[1..] {
+            if let Node::Function(name, args) = node {
+                match name.as_str() {
+                    "@" => {
+                        if let Ok(Value::CSSAtRule(css_at_rule)) =
+                            self.handle_at_rule(&mut Molecule::new("<dummy>"), args)
+                        {
+                            css_rule.insert_at_rule(&css_at_rule);
+                        }
+                    }
+                    _ => {
+                        if let Some(Node::String(value)) = args.first() {
+                            css_rule.insert_declaration(&CSSDeclaration::new(name, value));
+                        }
+                    }
+                }
             }
-            _ => Err(("Invalid rule".to_owned(), args.to_vec())),
         }
+
+        molecule.insert_css_rule(&css_rule);
+        Ok(Value::CSSRule(css_rule.to_owned()))
     }
 
     fn handle_at_rule(&mut self, molecule: &mut Molecule, args: &[Node]) -> Result<Value, Error> {
         match &args {
             [Node::String(name)] => {
-                let css_at_rule = CSSAtRule::new(name, None, None);
+                let css_at_rule = CSSAtRule::new(name, None);
                 molecule.insert_css_at_rule(&css_at_rule);
                 Ok(Value::CSSAtRule(css_at_rule.to_owned()))
             }
             [Node::String(name), Node::String(params)] => {
-                let css_at_rule = CSSAtRule::new(name, Some(params), None);
+                let css_at_rule = CSSAtRule::new(name, Some(params));
                 molecule.insert_css_at_rule(&css_at_rule);
                 Ok(Value::CSSAtRule(css_at_rule.to_owned()))
             }
             [Node::String(name), Node::String(params), rules @ ..] => {
-                let mut css_at_rule = CSSAtRule::new(name, Some(params), None);
+                let mut css_at_rule = CSSAtRule::new(name, Some(params));
                 for rule in rules {
                     match rule {
                         Node::Function(function, args) if function == "rule" => {
-                            if let [Node::String(selector), Node::String(css)] = &args[..2] {
-                                css_at_rule.insert_rule(&CSSRule::new(selector, css));
-                            }
+                            let css_rule = if let Ok(Value::CSSRule(css_rule)) =
+                                self.handle_rule(&mut Molecule::new("<dummy>"), args)
+                            {
+                                css_rule
+                            } else {
+                                return Err(("Invalid rule".to_owned(), args.to_vec()));
+                            };
+
+                            css_at_rule.insert_rule(&css_rule);
+                        }
+                        Node::Function(function, args) if function == "@" => {
+                            let nested_css_at_rule = if let Ok(Value::CSSAtRule(at_rule)) =
+                                self.handle_at_rule(&mut Molecule::new("<dummy>"), args)
+                            {
+                                at_rule
+                            } else {
+                                return Err(("Invalid rule".to_owned(), args.to_vec()));
+                            };
+
+                            css_at_rule.insert_at_rule(&nested_css_at_rule);
                         }
                         _ => return Err(("Invalid rule".to_owned(), args.to_vec())),
                     }

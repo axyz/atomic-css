@@ -1,11 +1,11 @@
 use crate::lexer::{Lexer, Span, Token};
+use ariadne::{ColorGenerator, Label, Report, ReportKind, Source};
 use derive_more::Display;
 use logos::Logos;
 
 type Error = (String, Span);
 
 pub fn pretty_print_error(error: &Error, src: &str) {
-    use ariadne::{ColorGenerator, Label, Report, ReportKind, Source};
     let (msg, span) = error;
     let mut colors = ColorGenerator::new();
     let a = colors.next();

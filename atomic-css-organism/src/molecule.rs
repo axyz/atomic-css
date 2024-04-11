@@ -3,6 +3,7 @@ use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
 use crate::atom::*;
+use crate::css::*;
 use crate::electron::*;
 
 fn template_string(template: &str, values: &HashMap<String, String>) -> String {
@@ -23,54 +24,6 @@ fn get_variables(str: &str) -> Vec<String> {
         variables.push(cap.get(1).unwrap().as_str().to_string());
     }
     variables
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
-#[display(fmt = "#CSSRule({} {{ ... }})", selector)]
-pub struct CSSRule {
-    pub selector: String,
-    pub css: String,
-}
-
-impl CSSRule {
-    pub fn new(selector: &str, css: &str) -> Self {
-        CSSRule {
-            selector: selector.to_string(),
-            css: css.to_string(),
-        }
-    }
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
-#[display(fmt = "#CSSAtRule(@{} {:?} {{ ... }})", name, params)]
-pub struct CSSAtRule {
-    pub name: String,
-    pub params: Option<String>,
-    pub css_rules: Option<Vec<CSSRule>>,
-}
-
-impl CSSAtRule {
-    pub fn new(name: &str, params: Option<&str>, css_rules: Option<Vec<CSSRule>>) -> Self {
-        let mut at_rule = CSSAtRule {
-            ..Default::default()
-        };
-        at_rule.name = name.to_string();
-        if let Some(par) = params {
-            at_rule.params = Some(par.to_string());
-        }
-        if let Some(rules) = css_rules {
-            at_rule.css_rules = Some(rules);
-        }
-        at_rule
-    }
-
-    pub fn insert_rule(&mut self, rule: &CSSRule) {
-        if let Some(rules) = &mut self.css_rules {
-            rules.push(rule.clone());
-        } else {
-            self.css_rules = Some(vec![rule.clone()]);
-        }
-    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -144,7 +97,7 @@ impl Molecule {
     }
 
     pub fn with_css_rule(mut self, css_rule: CSSRule) -> Self {
-        self.insert_css_rule(&css_rule, None);
+        self.insert_css_rule(&css_rule);
         self
     }
 
@@ -162,7 +115,7 @@ impl Molecule {
 
     pub fn with_css_rules(mut self, css_rules: Vec<CSSRule>) -> Self {
         for css_rule in css_rules {
-            self.insert_css_rule(&css_rule, None);
+            self.insert_css_rule(&css_rule);
         }
         self
     }
@@ -183,24 +136,19 @@ impl Molecule {
         self.hashed_atoms.update_atom_selector(atom);
     }
 
-    pub fn insert_css_rule(&mut self, css_rule: &CSSRule, ctx: Option<&str>) {
-        let parent_ctx = ctx.unwrap_or("");
-        let mut rule = css_rule.selector.clone();
-        rule.push('{');
-        rule.push_str(&css_rule.css);
-        rule.push('}');
-        self.css.push_str(&rule);
-
-        let mut variables = HashSet::new();
-        variables.extend(get_variables(&css_rule.selector));
-        variables.extend(get_variables(&css_rule.css));
-
+    fn update_hashable_contents_from_css(&mut self, css: &str) {
+        let variables = get_variables(css);
         for variable in variables {
             if let Some(atom) = self.atoms.get(&variable) {
-                self.hashed_atoms
-                    .update_atom_hashable_contents(atom, &format!("{}{}", &parent_ctx, &rule));
+                self.hashed_atoms.update_atom_hashable_contents(atom, css);
             }
         }
+    }
+
+    pub fn insert_css_rule(&mut self, css_rule: &CSSRule) {
+        self.css.push_str(&css_rule.get_css());
+
+        self.update_hashable_contents_from_css(&css_rule.get_css());
     }
 
     pub fn get_css(&self) -> String {
@@ -225,21 +173,8 @@ impl Molecule {
     }
 
     pub fn insert_css_at_rule(&mut self, css_at_rule: &CSSAtRule) {
-        let mut at_rule = String::from("@");
-        at_rule.push_str(&css_at_rule.name.clone());
-        if let Some(params) = &css_at_rule.params {
-            at_rule.push(' ');
-            at_rule.push_str(params);
-        }
-        self.css.push_str(&at_rule);
-        if let Some(css_rules) = &css_at_rule.css_rules {
-            self.css.push('{');
-            for css_rule in css_rules {
-                self.insert_css_rule(css_rule, Some(&at_rule));
-            }
-            self.css.push('}')
-        } else {
-            self.css.push(';');
-        }
+        self.css.push_str(&css_at_rule.get_css());
+
+        self.update_hashable_contents_from_css(&css_at_rule.get_css());
     }
 }
