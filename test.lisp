@@ -5,13 +5,6 @@
 (molecule `button`
   (atom `label` (electrons `blue`)))
 
-(def world `foo`)
-
-(def foo (electron `black` (color `#000000`)))
-
-(dbg `hello` world (fn) foo)
-(log `hello ` world ` ` (fn) ` ` foo)
-
 (molecule `flag`
   (atom `root` (electrons `red` `bg_green`))
   (atom `label` (import `button` `label`))

@@ -5,7 +5,6 @@ use atomic_css_organism::molecule::*;
 use atomic_css_organism::organism::*;
 use atomic_css_parser::parser::*;
 use derive_more::Display;
-use std::collections::HashMap;
 
 type Error = (String, Vec<Node>);
 
@@ -24,20 +23,8 @@ enum Value {
 }
 
 #[derive(Debug, Default)]
-struct Context {
-    variables: HashMap<String, Value>,
-}
-
-impl Context {
-    fn define_variable(&mut self, name: &str, value: Value) {
-        self.variables.insert(name.to_owned(), value);
-    }
-}
-
-#[derive(Debug, Default)]
 pub struct Runtime {
     pub organism: Organism,
-    context: Context,
 }
 
 impl Runtime {
@@ -61,37 +48,7 @@ impl Runtime {
         match name {
             "electron" => Ok(self.handle_electron(args)?),
             "molecule" => Ok(self.handle_molecule(args)?),
-            "log" => Ok(self.handle_log(args)?),
-            "dbg" => Ok(self.handle_dbg(args)?),
-            "def" => Ok(self.handle_def(args)?),
             _ => Ok(Value::Void),
-        }
-    }
-
-    fn handle_def(&mut self, args: &[Node]) -> Result<Value, Error> {
-        match &args {
-            [Node::Identifier(name), Node::String(text)] => {
-                self.context
-                    .define_variable(name, Value::String(text.to_owned()));
-                Ok(Value::Void)
-            }
-            [Node::Identifier(name), Node::Function(function, args)] => {
-                let value = self.call_organism_function(function, args)?;
-                self.context.define_variable(name, value);
-                Ok(Value::Void)
-            }
-            _ => Err(("Invalid def".to_owned(), args.to_vec())),
-        }
-    }
-
-    fn get_variable(&self, name: &str) -> Result<Value, Error> {
-        if let Some(value) = self.context.variables.get(name) {
-            Ok(value.to_owned())
-        } else {
-            Err((
-                "Variable not found".to_owned(),
-                vec![Node::Identifier(name.to_owned())],
-            ))
         }
     }
 
@@ -136,34 +93,6 @@ impl Runtime {
             "import" => Ok(self.handle_import(atom, args)?),
             _ => Ok(Value::Void),
         }
-    }
-
-    fn handle_log(&mut self, args: &[Node]) -> Result<Value, Error> {
-        for node in args {
-            match node {
-                Node::Identifier(name) => {
-                    let value = self.get_variable(name)?;
-                    print!("{}", value);
-                }
-                _ => print!("{}", node),
-            }
-        }
-        println!();
-        Ok(Value::Void)
-    }
-
-    fn handle_dbg(&mut self, args: &[Node]) -> Result<Value, Error> {
-        for node in args {
-            match node {
-                Node::Identifier(name) => {
-                    let value = self.get_variable(name)?;
-                    print!("{:?}", value);
-                }
-                _ => print!("{:?}", node),
-            }
-        }
-        println!();
-        Ok(Value::Void)
     }
 
     fn handle_electrons(&mut self, atom: &mut Atom, args: &[Node]) -> Result<Value, Error> {
