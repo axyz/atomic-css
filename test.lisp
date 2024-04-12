@@ -10,7 +10,10 @@
   (atom `label` (import `button` `label`))
   (& `${root}`
     (padding `1rem`)
-    (margin `0`))
+    (& `&:hover`
+      (background-color `#ff00ff`))
+    (margin `0`)
+    (@ `media` `print` (display `none`)))
   (@ `foo`)
   (@ `bar` `baz`)
   (@ `media` `(min-width: 1024px)`

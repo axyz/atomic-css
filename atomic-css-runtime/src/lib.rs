@@ -177,11 +177,19 @@ impl Runtime {
                             css_rule.insert_at_rule(&css_at_rule);
                         }
                     }
-                    _ => {
-                        if let Some(Node::String(value)) = args.first() {
-                            css_rule.insert_declaration(&CSSDeclaration::new(name, value));
+                    "&" => {
+                        if let Ok(Value::CSSRule(rule)) =
+                            self.handle_rule(&mut Molecule::new("<dummy>"), args)
+                        {
+                            css_rule.insert_rule(&rule);
                         }
                     }
+                    _ => match &args[..] {
+                        [Node::String(value)] => {
+                            css_rule.insert_declaration(&CSSDeclaration::new(name, value));
+                        }
+                        _ => return Err(("Invalid declaration".to_owned(), args.to_vec())),
+                    },
                 }
             }
         }
@@ -223,10 +231,17 @@ impl Runtime {
                             {
                                 at_rule
                             } else {
-                                return Err(("Invalid rule".to_owned(), args.to_vec()));
+                                return Err(("Invalid at rule".to_owned(), args.to_vec()));
                             };
 
                             css_at_rule.insert_at_rule(&nested_css_at_rule);
+                        }
+                        Node::Function(name, args) if args.len() == 1 => {
+                            if let Some(Node::String(value)) = args.first() {
+                                css_at_rule.insert_declaration(&CSSDeclaration::new(name, value));
+                            } else {
+                                return Err(("Invalid declaration".to_owned(), args.to_vec()));
+                            }
                         }
                         _ => return Err(("Invalid rule".to_owned(), args.to_vec())),
                     }

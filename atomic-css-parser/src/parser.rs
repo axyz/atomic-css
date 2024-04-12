@@ -9,7 +9,7 @@ pub fn pretty_print_error(error: &Error, src: &str) {
     let (msg, span) = error;
     let mut colors = ColorGenerator::new();
     let a = colors.next();
-    Report::build(ReportKind::Error, "<source>", 12)
+    Report::build(ReportKind::Error, "<source>", span.end)
         .with_message("Invalid document".to_string())
         .with_label(
             Label::new(("<source>", span.clone()))
@@ -70,6 +70,7 @@ pub fn parse(source: &str) -> Result<Vec<Node>> {
             continue;
         }
         let error = ("Invalid token".to_owned(), lexer.span());
+
         pretty_print_error(&error, source);
         return Err(error);
     }

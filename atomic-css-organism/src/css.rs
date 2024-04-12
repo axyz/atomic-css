@@ -17,22 +17,17 @@ impl CSSDeclaration {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Display)]
-pub enum CSSRuleChild {
+pub enum CSSNode {
+    CSSRule(CSSRule),
     CSSAtRule(CSSAtRule),
     CSSDeclaration(CSSDeclaration),
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Display)]
-pub enum CSSAtRuleChild {
-    CSSAtRule(CSSAtRule),
-    CSSRule(CSSRule),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Default, Display)]
 #[display(fmt = "#CSSRule({} {{ ... }})", selector)]
 pub struct CSSRule {
     pub selector: String,
-    children: Vec<CSSRuleChild>,
+    children: Vec<CSSNode>,
 }
 
 impl CSSRule {
@@ -47,10 +42,11 @@ impl CSSRule {
         let mut css = format!("{}{{", self.selector);
         for child in &self.children {
             match child {
-                CSSRuleChild::CSSDeclaration(declaration) => {
+                CSSNode::CSSDeclaration(declaration) => {
                     css.push_str(&format!("{}:{};", declaration.property, declaration.value))
                 }
-                CSSRuleChild::CSSAtRule(at_rule) => css.push_str(&at_rule.get_css()),
+                CSSNode::CSSAtRule(at_rule) => css.push_str(&at_rule.get_css()),
+                CSSNode::CSSRule(rule) => css.push_str(&rule.get_css()),
             }
         }
         css.push('}');
@@ -67,13 +63,22 @@ impl CSSRule {
         self
     }
 
+    pub fn with_rule(mut self, rule: CSSRule) -> Self {
+        self.insert_rule(&rule);
+        self
+    }
+
     pub fn insert_declaration(&mut self, declaration: &CSSDeclaration) {
         self.children
-            .push(CSSRuleChild::CSSDeclaration(declaration.clone()));
+            .push(CSSNode::CSSDeclaration(declaration.clone()));
     }
 
     pub fn insert_at_rule(&mut self, at_rule: &CSSAtRule) {
-        self.children.push(CSSRuleChild::CSSAtRule(at_rule.clone()));
+        self.children.push(CSSNode::CSSAtRule(at_rule.clone()));
+    }
+
+    pub fn insert_rule(&mut self, rule: &CSSRule) {
+        self.children.push(CSSNode::CSSRule(rule.clone()));
     }
 }
 
@@ -82,7 +87,7 @@ impl CSSRule {
 pub struct CSSAtRule {
     pub name: String,
     pub params: Option<String>,
-    children: Vec<CSSAtRuleChild>,
+    children: Vec<CSSNode>,
 }
 
 impl CSSAtRule {
@@ -107,13 +112,22 @@ impl CSSAtRule {
         self
     }
 
+    pub fn with_declaration(mut self, declaration: CSSDeclaration) -> Self {
+        self.insert_declaration(&declaration);
+        self
+    }
+
     pub fn insert_rule(&mut self, rule: &CSSRule) {
-        self.children.push(CSSAtRuleChild::CSSRule(rule.clone()));
+        self.children.push(CSSNode::CSSRule(rule.clone()));
     }
 
     pub fn insert_at_rule(&mut self, at_rule: &CSSAtRule) {
+        self.children.push(CSSNode::CSSAtRule(at_rule.clone()));
+    }
+
+    pub fn insert_declaration(&mut self, declaration: &CSSDeclaration) {
         self.children
-            .push(CSSAtRuleChild::CSSAtRule(at_rule.clone()));
+            .push(CSSNode::CSSDeclaration(declaration.clone()));
     }
 
     pub fn get_css(&self) -> String {
@@ -126,8 +140,11 @@ impl CSSAtRule {
             css.push('{');
             for child in &self.children {
                 match child {
-                    CSSAtRuleChild::CSSRule(rule) => css.push_str(&rule.get_css()),
-                    CSSAtRuleChild::CSSAtRule(at_rule) => css.push_str(&at_rule.get_css()),
+                    CSSNode::CSSRule(rule) => css.push_str(&rule.get_css()),
+                    CSSNode::CSSAtRule(at_rule) => css.push_str(&at_rule.get_css()),
+                    CSSNode::CSSDeclaration(decl) => {
+                        css.push_str(&format!("{}:{};", decl.property, decl.value))
+                    }
                 }
             }
             css.push('}');
